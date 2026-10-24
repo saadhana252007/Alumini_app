@@ -1,0 +1,11 @@
+project_id = "ism-edc-admin"
+
+[auth]
+# Administrator accounts are created only by the Super Admin (Edge Function).
+enable_signup = false
+
+[functions.send-notification]
+verify_jwt = true
+
+[functions.admin-create-user]
+verify_jwt = true
