@@ -28,7 +28,8 @@ class TariffsView extends ConsumerWidget {
 
     return PageScaffold(
       title: 'Tariffs',
-      subtitle: 'Initial rates from the EDC revised tariff (Section II of the requisition form)',
+      subtitle:
+          'Initial rates from the EDC revised tariff (Section II of the requisition form)',
       child: ListView(padding: const EdgeInsets.only(bottom: 32), children: [
         SectionCard(
           title: 'Applicable taxes',
@@ -36,9 +37,13 @@ class TariffsView extends ConsumerWidget {
               ? TextButton(
                   onPressed: () async {
                     final v = await showDialog<double>(
-                        context: context, builder: (_) => _GstDialog(current: gst.valueOrNull ?? 0));
+                        context: context,
+                        builder: (_) =>
+                            _GstDialog(current: gst.valueOrNull ?? 0));
                     if (v == null) return;
-                    final o = await ref.read(tariffActionsProvider.notifier).setGst(v);
+                    final o = await ref
+                        .read(tariffActionsProvider.notifier)
+                        .setGst(v);
                     if (context.mounted) showOutcome(context, o);
                   },
                   child: const Text('Edit GST %'))
@@ -65,34 +70,45 @@ class TariffsView extends ConsumerWidget {
                           '${roomTypes[r.roomType]}${r.subCategory.isEmpty ? '' : ' - ${eSubCategories[r.subCategory] ?? r.subCategory}'}'),
                       subtitle: r.note == null ? null : Text(r.note!),
                       trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                        Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.end, children: [
-                          Text(
-                              r.billingUnit == 'free'
-                                  ? 'Free'
-                                  : r.rate == null
-                                      ? (_units[r.billingUnit] ?? r.billingUnit)
-                                      : fmtMoney(r.rate),
-                              style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.navy)),
-                          if (r.rate != null && r.billingUnit != 'free')
-                            Text(_units[r.billingUnit] ?? '',
-                                style: const TextStyle(fontSize: 11, color: AppColors.muted)),
-                          if (!r.isActive)
-                            const Text('inactive', style: TextStyle(fontSize: 11, color: AppColors.danger)),
-                        ]),
+                        Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                  r.billingUnit == 'free'
+                                      ? 'Free'
+                                      : r.rate == null
+                                          ? (_units[r.billingUnit] ??
+                                              r.billingUnit)
+                                          : fmtMoney(r.rate),
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.navy)),
+                              if (r.rate != null && r.billingUnit != 'free')
+                                Text(_units[r.billingUnit] ?? '',
+                                    style: const TextStyle(
+                                        fontSize: 11, color: AppColors.muted)),
+                              if (!r.isActive)
+                                const Text('inactive',
+                                    style: TextStyle(
+                                        fontSize: 11, color: AppColors.danger)),
+                            ]),
                         if (canManage)
                           IconButton(
                             tooltip: 'Edit',
                             icon: const Icon(Icons.edit_outlined),
                             onPressed: () async {
                               final res = await showDialog<_RuleEdit>(
-                                  context: context, builder: (_) => _RuleDialog(rule: r));
+                                  context: context,
+                                  builder: (_) => _RuleDialog(rule: r));
                               if (res == null) return;
-                              final o = await ref.read(tariffActionsProvider.notifier).updateRule(
-                                  r,
-                                  rate: res.rate,
-                                  unit: res.unit,
-                                  active: res.active,
-                                  note: res.note);
+                              final o = await ref
+                                  .read(tariffActionsProvider.notifier)
+                                  .updateRule(r,
+                                      rate: res.rate,
+                                      unit: res.unit,
+                                      active: res.active,
+                                      note: res.note);
                               if (context.mounted) showOutcome(context, o);
                             },
                           ),
@@ -131,7 +147,8 @@ class _RuleDialog extends StatefulWidget {
 class _RuleDialogState extends State<_RuleDialog> {
   late String _unit = widget.rule.billingUnit;
   late bool _active = widget.rule.isActive;
-  late final _rate = TextEditingController(text: widget.rule.rate?.toStringAsFixed(2) ?? '');
+  late final _rate =
+      TextEditingController(text: widget.rule.rate?.toStringAsFixed(2) ?? '');
   late final _note = TextEditingController(text: widget.rule.note ?? '');
 
   @override
@@ -151,7 +168,10 @@ class _RuleDialogState extends State<_RuleDialog> {
           DropdownButtonFormField<String>(
             value: _unit,
             decoration: const InputDecoration(labelText: 'Billing basis'),
-            items: [for (final e in _units.entries) DropdownMenuItem(value: e.key, child: Text(e.value))],
+            items: [
+              for (final e in _units.entries)
+                DropdownMenuItem(value: e.key, child: Text(e.value))
+            ],
             onChanged: (v) => setState(() => _unit = v ?? _unit),
           ),
           const SizedBox(height: 12),
@@ -162,7 +182,9 @@ class _RuleDialogState extends State<_RuleDialog> {
             decoration: const InputDecoration(labelText: 'Rate (Rs.)'),
           ),
           const SizedBox(height: 12),
-          TextField(controller: _note, decoration: const InputDecoration(labelText: 'Note')),
+          TextField(
+              controller: _note,
+              decoration: const InputDecoration(labelText: 'Note')),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             title: const Text('Active'),
@@ -172,7 +194,9 @@ class _RuleDialogState extends State<_RuleDialog> {
         ]),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel')),
         FilledButton(
           onPressed: () => Navigator.pop(
               context,
@@ -210,9 +234,12 @@ class _GstDialogState extends State<_GstDialog> {
         decoration: const InputDecoration(labelText: 'GST %'),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel')),
         FilledButton(
-            onPressed: () => Navigator.pop(context, double.tryParse(_c.text.trim()) ?? 0),
+            onPressed: () =>
+                Navigator.pop(context, double.tryParse(_c.text.trim()) ?? 0),
             child: const Text('Save')),
       ],
     );

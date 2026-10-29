@@ -18,13 +18,19 @@ class TariffRepository {
   }
 
   Future<double> gstPercent() async {
-    final row =
-        await _c.from('app_settings').select('value').eq('key', 'gst_percent').maybeSingle();
+    final row = await _c
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'gst_percent')
+        .maybeSingle();
     return parseNum(row?['value']) ?? 0;
   }
 
   Future<void> updateRule(String id,
-      {double? rate, required String unit, required bool active, String? note}) async {
+      {double? rate,
+      required String unit,
+      required bool active,
+      String? note}) async {
     await _c.from('tariff_rules').update({
       'rate': rate,
       'billing_unit': unit,

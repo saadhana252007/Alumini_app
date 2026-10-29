@@ -53,7 +53,8 @@ class ExportService {
     sheet.appendRow([TextCellValue('')]);
 
     final headerRow = 2 + t.meta.length;
-    sheet.appendRow(t.headers.map<CellValue?>((h) => TextCellValue(h)).toList());
+    sheet
+        .appendRow(t.headers.map<CellValue?>((h) => TextCellValue(h)).toList());
     final style = CellStyle(
       bold: true,
       fontColorHex: ExcelColor.fromHexString('#FFFFFF'),
@@ -125,14 +126,15 @@ class ExportService {
         '<manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml"/>'
         '</manifest:manifest>';
 
-    final mimetype =
-        Uint8List.fromList('application/vnd.oasis.opendocument.spreadsheet'.codeUnits);
+    final mimetype = Uint8List.fromList(
+        'application/vnd.oasis.opendocument.spreadsheet'.codeUnits);
     final contentBytes = Uint8List.fromList(_utf8(content));
     final manifestBytes = Uint8List.fromList(_utf8(manifest));
 
     final archive = Archive()
       ..addFile(ArchiveFile.noCompress('mimetype', mimetype.length, mimetype))
-      ..addFile(ArchiveFile('META-INF/manifest.xml', manifestBytes.length, manifestBytes))
+      ..addFile(ArchiveFile(
+          'META-INF/manifest.xml', manifestBytes.length, manifestBytes))
       ..addFile(ArchiveFile('content.xml', contentBytes.length, contentBytes));
     final out = ZipEncoder().encode(archive);
     return Uint8List.fromList(out as List<int>);
@@ -152,10 +154,12 @@ class ExportService {
         header: (ctx) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Text('Indian Institute of Technology (Indian School of Mines), Dhanbad',
+            pw.Text(
+                'Indian Institute of Technology (Indian School of Mines), Dhanbad',
                 style: pw.TextStyle(
                     fontSize: 11, fontWeight: pw.FontWeight.bold, color: navy)),
-            pw.Text('Executive Development Centre', style: const pw.TextStyle(fontSize: 9)),
+            pw.Text('Executive Development Centre',
+                style: const pw.TextStyle(fontSize: 9)),
             pw.Divider(color: gold, thickness: 1.2),
           ],
         ),
@@ -182,7 +186,9 @@ class ExportService {
                 .map((r) => r.map((c) => c == null ? '' : '$c').toList())
                 .toList(),
             headerStyle: pw.TextStyle(
-                fontSize: 7.5, fontWeight: pw.FontWeight.bold, color: PdfColors.white),
+                fontSize: 7.5,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.white),
             headerDecoration: pw.BoxDecoration(color: navy),
             cellStyle: const pw.TextStyle(fontSize: 7),
             cellPadding: const pw.EdgeInsets.all(3),

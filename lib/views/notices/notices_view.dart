@@ -22,7 +22,8 @@ class NoticesView extends ConsumerWidget {
 
     return PageScaffold(
       title: 'Notices & posters',
-      subtitle: 'Institutional announcements visible to authorised administrators',
+      subtitle:
+          'Institutional announcements visible to authorised administrators',
       actions: [
         if (canManage)
           FilledButton.icon(
@@ -32,41 +33,46 @@ class NoticesView extends ConsumerWidget {
           ),
       ],
       child: Column(children: [
-        Wrap(spacing: 10, runSpacing: 10, crossAxisAlignment: WrapCrossAlignment.center, children: [
-          SizedBox(
-            width: 260,
-            child: TextField(
-              decoration: const InputDecoration(
-                  hintText: 'Search title', prefixIcon: Icon(Icons.search)),
-              onChanged: notifier.setQuery,
-            ),
-          ),
-          SizedBox(
-            width: 180,
-            child: DropdownButtonFormField<String?>(
-              value: filter.status,
-              decoration: const InputDecoration(labelText: 'Status'),
-              items: [
-                const DropdownMenuItem(value: null, child: Text('All')),
-                for (final e in noticeStatuses.entries)
-                  DropdownMenuItem(value: e.key, child: Text(e.value)),
-              ],
-              onChanged: notifier.setStatus,
-            ),
-          ),
-          SizedBox(
-            width: 200,
-            child: DropdownButtonFormField<String?>(
-              value: filter.category,
-              decoration: const InputDecoration(labelText: 'Category'),
-              items: [
-                const DropdownMenuItem(value: null, child: Text('All')),
-                for (final c in noticeCategories) DropdownMenuItem(value: c, child: Text(c)),
-              ],
-              onChanged: notifier.setCategory,
-            ),
-          ),
-        ]),
+        Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              SizedBox(
+                width: 260,
+                child: TextField(
+                  decoration: const InputDecoration(
+                      hintText: 'Search title', prefixIcon: Icon(Icons.search)),
+                  onChanged: notifier.setQuery,
+                ),
+              ),
+              SizedBox(
+                width: 180,
+                child: DropdownButtonFormField<String?>(
+                  value: filter.status,
+                  decoration: const InputDecoration(labelText: 'Status'),
+                  items: [
+                    const DropdownMenuItem(value: null, child: Text('All')),
+                    for (final e in noticeStatuses.entries)
+                      DropdownMenuItem(value: e.key, child: Text(e.value)),
+                  ],
+                  onChanged: notifier.setStatus,
+                ),
+              ),
+              SizedBox(
+                width: 200,
+                child: DropdownButtonFormField<String?>(
+                  value: filter.category,
+                  decoration: const InputDecoration(labelText: 'Category'),
+                  items: [
+                    const DropdownMenuItem(value: null, child: Text('All')),
+                    for (final c in noticeCategories)
+                      DropdownMenuItem(value: c, child: Text(c)),
+                  ],
+                  onChanged: notifier.setCategory,
+                ),
+              ),
+            ]),
         const SizedBox(height: 12),
         Expanded(
           child: AsyncBody<List<Notice>>(
@@ -80,7 +86,8 @@ class NoticesView extends ConsumerWidget {
               child: ListView.builder(
                 padding: const EdgeInsets.only(bottom: 24),
                 itemCount: list.length,
-                itemBuilder: (_, i) => _NoticeCard(notice: list[i], canManage: canManage),
+                itemBuilder: (_, i) =>
+                    _NoticeCard(notice: list[i], canManage: canManage),
               ),
             ),
           ),
@@ -123,8 +130,10 @@ class _NoticeCard extends ConsumerWidget {
               child: n.imageUrl == null
                   ? Container(
                       color: AppColors.goldSoft,
-                      child: const Icon(Icons.image_outlined, color: AppColors.gold))
-                  : Image.network(n.imageUrl!, fit: BoxFit.cover,
+                      child: const Icon(Icons.image_outlined,
+                          color: AppColors.gold))
+                  : Image.network(n.imageUrl!,
+                      fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(
                           color: AppColors.canvas,
                           child: const Icon(Icons.broken_image_outlined))),
@@ -132,22 +141,35 @@ class _NoticeCard extends ConsumerWidget {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Wrap(spacing: 8, runSpacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
-                StatusChip(n.status, label: noticeStatuses[n.status]),
-                Chip(
-                  label: Text(n.category, style: const TextStyle(fontSize: 11)),
-                  visualDensity: VisualDensity.compact,
-                  padding: EdgeInsets.zero,
-                ),
-                if (n.isExpired && n.status == 'published')
-                  const Text('Expired', style: TextStyle(color: AppColors.danger, fontSize: 12)),
-              ]),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    StatusChip(n.status, label: noticeStatuses[n.status]),
+                    Chip(
+                      label: Text(n.category,
+                          style: const TextStyle(fontSize: 11)),
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                    ),
+                    if (n.isExpired && n.status == 'published')
+                      const Text('Expired',
+                          style:
+                              TextStyle(color: AppColors.danger, fontSize: 12)),
+                  ]),
               const SizedBox(height: 6),
               Text(n.title,
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: AppColors.navy)),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      color: AppColors.navy)),
               if (n.description.isNotEmpty)
-                Text(n.description, maxLines: 2, overflow: TextOverflow.ellipsis,
+                Text(n.description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: AppColors.muted)),
               const SizedBox(height: 6),
               Text(
@@ -177,7 +199,8 @@ class _NoticeCard extends ConsumerWidget {
                 if (n.status != 'published')
                   const PopupMenuItem(value: 'publish', child: Text('Publish')),
                 if (n.status == 'published')
-                  const PopupMenuItem(value: 'unpublish', child: Text('Unpublish')),
+                  const PopupMenuItem(
+                      value: 'unpublish', child: Text('Unpublish')),
                 if (n.status != 'archived')
                   const PopupMenuItem(value: 'archive', child: Text('Archive')),
               ],

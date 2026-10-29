@@ -20,7 +20,8 @@ class DashboardView extends ConsumerWidget {
 
     return PageScaffold(
       title: 'Welcome${name.isEmpty ? '' : ', ${name.split(' ').first}'}',
-      subtitle: '${session?.profile.role.label ?? ''} - live institutional overview',
+      subtitle:
+          '${session?.profile.role.label ?? ''} - live institutional overview',
       actions: [
         IconButton(
           tooltip: 'Refresh',
@@ -47,16 +48,23 @@ class DashboardView extends ConsumerWidget {
                     SectionCard(
                       title: 'Published notices',
                       trailing: TextButton(
-                          onPressed: () => context.go('/notices'), child: const Text('View all')),
+                          onPressed: () => context.go('/notices'),
+                          child: const Text('View all')),
                       child: d.notices.isEmpty
-                          ? const EmptyView(message: 'No published notices.', icon: Icons.campaign_outlined)
+                          ? const EmptyView(
+                              message: 'No published notices.',
+                              icon: Icons.campaign_outlined)
                           : Column(children: [
                               for (final n in d.notices)
                                 ListTile(
                                   contentPadding: EdgeInsets.zero,
-                                  leading: const Icon(Icons.campaign_outlined, color: AppColors.gold),
-                                  title: Text(n.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                                  subtitle: Text('${n.category} - ${fmtDate(n.publishDate)}'),
+                                  leading: const Icon(Icons.campaign_outlined,
+                                      color: AppColors.gold),
+                                  title: Text(n.title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis),
+                                  subtitle: Text(
+                                      '${n.category} - ${fmtDate(n.publishDate)}'),
                                 ),
                             ]),
                     ),
@@ -64,13 +72,16 @@ class DashboardView extends ConsumerWidget {
                     SectionCard(
                       title: 'Upcoming arrivals',
                       child: d.arrivals.isEmpty
-                          ? const EmptyView(message: 'No approved arrivals scheduled.', icon: Icons.luggage_outlined)
+                          ? const EmptyView(
+                              message: 'No approved arrivals scheduled.',
+                              icon: Icons.luggage_outlined)
                           : Column(children: [
                               for (final r in d.arrivals)
                                 ListTile(
                                   contentPadding: EdgeInsets.zero,
                                   onTap: () => context.go('/requests/${r.id}'),
-                                  leading: const Icon(Icons.login, color: AppColors.success),
+                                  leading: const Icon(Icons.login,
+                                      color: AppColors.success),
                                   title: Text(r.visitorName),
                                   subtitle: Text(
                                       '${r.reference} - ${roomTypes[r.roomType]} - ${fmtDateTime(r.arrivalAt)}'),
@@ -82,25 +93,31 @@ class DashboardView extends ConsumerWidget {
                     ? SectionCard(
                         title: 'Recent activity',
                         child: d.activity.isEmpty
-                            ? const EmptyView(message: 'No activity recorded yet.', icon: Icons.timeline)
+                            ? const EmptyView(
+                                message: 'No activity recorded yet.',
+                                icon: Icons.timeline)
                             : Column(children: [
                                 for (final a in d.activity)
                                   ListTile(
                                     contentPadding: EdgeInsets.zero,
                                     dense: true,
-                                    leading: const Icon(Icons.circle, size: 10, color: AppColors.gold),
+                                    leading: const Icon(Icons.circle,
+                                        size: 10, color: AppColors.gold),
                                     title: Text(a.description),
-                                    subtitle: Text('${a.actorName ?? 'System'} - ${fmtDateTime(a.createdAt)}'),
+                                    subtitle: Text(
+                                        '${a.actorName ?? 'System'} - ${fmtDateTime(a.createdAt)}'),
                                   ),
                               ]),
                       )
                     : const SizedBox.shrink();
                 if (!wide) return Column(children: [left, right]);
-                return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Expanded(child: left),
-                  const SizedBox(width: 14),
-                  Expanded(child: right),
-                ]);
+                return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: left),
+                      const SizedBox(width: 14),
+                      Expanded(child: right),
+                    ]);
               }),
             ],
           ),
@@ -151,14 +168,20 @@ class _StatGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final cards = <_Stat>[
       if (ref.can(Perm.noticeView))
-        _Stat('Published notices', stats['published_notices'] ?? 0, Icons.campaign, AppColors.navy, '/notices'),
+        _Stat('Published notices', stats['published_notices'] ?? 0,
+            Icons.campaign, AppColors.navy, '/notices'),
       if (ref.can(Perm.requestView)) ...[
-        _Stat('Pending requests', stats['pending'] ?? 0, Icons.hourglass_top, AppColors.warning, '/requests'),
+        _Stat('Pending requests', stats['pending'] ?? 0, Icons.hourglass_top,
+            AppColors.warning, '/requests'),
         if (ref.can(Perm.requestDecide))
-          _Stat('Awaiting my decision', stats['awaiting_my_decision'] ?? 0, Icons.gavel, AppColors.info, '/requests'),
-        _Stat('Approved bookings', stats['approved'] ?? 0, Icons.check_circle, AppColors.success, '/history'),
-        _Stat('Rejected', stats['rejected'] ?? 0, Icons.cancel, AppColors.danger, '/history'),
-        _Stat('Arrivals (next 7 days)', stats['upcoming_arrivals'] ?? 0, Icons.flight_land, AppColors.navyLight, '/history'),
+          _Stat('Awaiting my decision', stats['awaiting_my_decision'] ?? 0,
+              Icons.gavel, AppColors.info, '/requests'),
+        _Stat('Approved bookings', stats['approved'] ?? 0, Icons.check_circle,
+            AppColors.success, '/history'),
+        _Stat('Rejected', stats['rejected'] ?? 0, Icons.cancel,
+            AppColors.danger, '/history'),
+        _Stat('Arrivals (next 7 days)', stats['upcoming_arrivals'] ?? 0,
+            Icons.flight_land, AppColors.navyLight, '/history'),
       ],
     ];
     return Wrap(
@@ -168,34 +191,51 @@ class _StatGrid extends StatelessWidget {
         for (final c in cards)
           SizedBox(
             width: 210,
-            child: Card(
-              elevation: 0,
-              margin: EdgeInsets.zero,
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  side: const BorderSide(color: AppColors.line)),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(10),
-                onTap: () => context.go(c.path),
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Row(children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                          color: AppColors.tint(c.color), borderRadius: BorderRadius.circular(8)),
-                      child: Icon(c.icon, color: c.color),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text('${c.value}',
-                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.navy)),
-                        Text(c.label, style: const TextStyle(fontSize: 12, color: AppColors.muted)),
-                      ]),
-                    ),
-                  ]),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.line),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x060B2545),
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: () => context.go(c.path),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                            color: AppColors.tint(c.color, 0.12),
+                            borderRadius: BorderRadius.circular(10)),
+                        child: Icon(c.icon, color: c.color, size: 22),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('${c.value}',
+                                  style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.navy)),
+                              Text(c.label,
+                                  style: const TextStyle(
+                                      fontSize: 12, color: AppColors.muted)),
+                            ]),
+                      ),
+                    ]),
+                  ),
                 ),
               ),
             ),

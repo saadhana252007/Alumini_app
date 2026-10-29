@@ -1,7 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:alumini_app/data/models/tariff.dart';
 
-TariffRule rule(String cat, String room, double? rate, String unit, {String sub = ''}) =>
+TariffRule rule(String cat, String room, double? rate, String unit,
+        {String sub = ''}) =>
     TariffRule(
       id: '$cat$sub$room',
       category: cat,
@@ -39,9 +40,18 @@ void main() {
       );
 
   test('billable days round up and are at least one', () {
-    expect(TariffCalculator.billableDays(arrival, arrival.add(const Duration(hours: 5))), 1);
-    expect(TariffCalculator.billableDays(arrival, arrival.add(const Duration(hours: 24))), 1);
-    expect(TariffCalculator.billableDays(arrival, arrival.add(const Duration(hours: 25))), 2);
+    expect(
+        TariffCalculator.billableDays(
+            arrival, arrival.add(const Duration(hours: 5))),
+        1);
+    expect(
+        TariffCalculator.billableDays(
+            arrival, arrival.add(const Duration(hours: 24))),
+        1);
+    expect(
+        TariffCalculator.billableDays(
+            arrival, arrival.add(const Duration(hours: 25))),
+        2);
   });
 
   test('Category A is free', () {
@@ -64,7 +74,8 @@ void main() {
   });
 
   test('Category E(a) suite uses the foreign-guest rate', () {
-    expect(calc('E', 'suite', 1, const Duration(days: 1), sub: 'a').total, 3000);
+    expect(
+        calc('E', 'suite', 1, const Duration(days: 1), sub: 'a').total, 3000);
   });
 
   test('missing policy is never invented', () {
@@ -76,7 +87,9 @@ void main() {
   });
 
   test('monthly tariff is charged per started 30-day month', () {
-    expect(calc('E', 'standard', 1, const Duration(days: 31), sub: 'b').total, 8000);
-    expect(calc('E', 'standard', 1, const Duration(days: 10), sub: 'b').total, 4000);
+    expect(calc('E', 'standard', 1, const Duration(days: 31), sub: 'b').total,
+        8000);
+    expect(calc('E', 'standard', 1, const Duration(days: 10), sub: 'b').total,
+        4000);
   });
 }

@@ -88,5 +88,6 @@ class NoticeRepository {
     await _c.from('notices').update(values).eq('id', id);
   }
 
-  Future<void> setStatus(String id, String status) => update(id, {'status': status});
+  Future<void> setStatus(String id, String status) =>
+      update(id, {'status': status});
 }

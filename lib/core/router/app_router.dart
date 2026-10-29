@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../viewmodels/session_viewmodel.dart';
 import '../../views/admin/admin_view.dart';
+import '../../views/admin/alumni_verification_view.dart';
 import '../../views/auth/login_view.dart';
 import '../../views/dashboard/dashboard_view.dart';
 import '../../views/notices/notice_editor_view.dart';
@@ -40,10 +41,12 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final s = ref.read(sessionProvider);
       final loc = state.uri.path;
-      if (s.isLoading && !s.hasValue) return loc == '/splash' ? null : '/splash';
+      if (s.isLoading && !s.hasValue)
+        return loc == '/splash' ? null : '/splash';
       final session = s.valueOrNull;
       if (session == null) return loc == '/login' ? null : '/login';
-      if (loc == '/login' || loc == '/splash' || loc == '/') return '/dashboard';
+      if (loc == '/login' || loc == '/splash' || loc == '/')
+        return '/dashboard';
 
       final required = _routePermissions[loc] ??
           (loc.startsWith('/notices/') && loc.endsWith('/edit')
@@ -59,15 +62,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state, child) =>
             AdminShell(location: state.uri.path, child: child),
         routes: [
-          GoRoute(path: '/dashboard', builder: (_, __) => const DashboardView()),
+          GoRoute(
+              path: '/dashboard', builder: (_, __) => const DashboardView()),
           GoRoute(path: '/notices', builder: (_, __) => const NoticesView()),
-          GoRoute(path: '/notices/new', builder: (_, __) => const NoticeEditorView()),
+          GoRoute(
+              path: '/notices/new',
+              builder: (_, __) => const NoticeEditorView()),
           GoRoute(
             path: '/notices/:id/edit',
-            builder: (_, s) => NoticeEditorView(noticeId: s.pathParameters['id']),
+            builder: (_, s) =>
+                NoticeEditorView(noticeId: s.pathParameters['id']),
           ),
           GoRoute(path: '/requests', builder: (_, __) => const RequestsView()),
-          GoRoute(path: '/requests/new', builder: (_, __) => const RequestFormView()),
+          GoRoute(
+              path: '/alumni',
+              builder: (_, __) => const AlumniVerificationView()),
+          GoRoute(
+              path: '/requests/new',
+              builder: (_, __) => const RequestFormView()),
           GoRoute(
             path: '/requests/:id',
             builder: (_, s) => RequestDetailView(id: s.pathParameters['id']!),

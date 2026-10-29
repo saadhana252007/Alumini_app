@@ -9,6 +9,7 @@ import '../../core/constants.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/formatters.dart';
 import '../../core/widgets/common.dart';
+import '../../core/widgets/image_cropper_dialog.dart';
 import '../../data/models/notice.dart';
 import '../../viewmodels/notice_viewmodel.dart';
 
@@ -74,20 +75,32 @@ class _NoticeFormState extends ConsumerState<_NoticeForm> {
   }
 
   Future<void> _pickImage() async {
-    final x = await ImagePicker()
-        .pickImage(source: ImageSource.gallery, maxWidth: 1800, imageQuality: 85);
+    final x = await ImagePicker().pickImage(
+        source: ImageSource.gallery, maxWidth: 1800, imageQuality: 85);
     if (x == null) return;
     final bytes = await x.readAsBytes();
     if (bytes.length > 5 * 1024 * 1024) {
       if (mounted) showError(context, 'Image must be smaller than 5 MB.');
       return;
     }
+    if (!mounted) return;
+    final cropped = await showImageCropper(context, bytes);
     final dot = x.name.lastIndexOf('.');
     setState(() {
-      _imageBytes = bytes;
+      _imageBytes = cropped ?? bytes;
       _imageExt = dot < 0 ? 'jpg' : x.name.substring(dot + 1);
       _removeImage = false;
     });
+  }
+
+  Future<void> _cropCurrentImage() async {
+    if (_imageBytes == null) return;
+    final cropped = await showImageCropper(context, _imageBytes!);
+    if (cropped != null && mounted) {
+      setState(() {
+        _imageBytes = cropped;
+      });
+    }
   }
 
   Future<void> _save() async {
@@ -118,10 +131,13 @@ class _NoticeFormState extends ConsumerState<_NoticeForm> {
     if (_imageBytes != null) {
       preview = Image.memory(_imageBytes!, fit: BoxFit.cover);
     } else if (existingUrl != null && !_removeImage) {
-      preview = Image.network(existingUrl, fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => const Icon(Icons.broken_image_outlined));
+      preview = Image.network(existingUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) =>
+              const Icon(Icons.broken_image_outlined));
     } else {
-      preview = const Center(child: Icon(Icons.image_outlined, size: 40, color: AppColors.gold));
+      preview = const Center(
+          child: Icon(Icons.image_outlined, size: 40, color: AppColors.gold));
     }
 
     return Form(
@@ -133,14 +149,16 @@ class _NoticeFormState extends ConsumerState<_NoticeForm> {
             TextFormField(
               controller: _title,
               decoration: const InputDecoration(labelText: 'Title *'),
-              validator: (v) =>
-                  (v == null || v.trim().length < 3) ? 'Enter at least 3 characters' : null,
+              validator: (v) => (v == null || v.trim().length < 3)
+                  ? 'Enter at least 3 characters'
+                  : null,
             ),
             const SizedBox(height: 14),
             TextFormField(
               controller: _desc,
               maxLines: 5,
-              decoration: const InputDecoration(labelText: 'Description', alignLabelWithHint: true),
+              decoration: const InputDecoration(
+                  labelText: 'Description', alignLabelWithHint: true),
             ),
             const SizedBox(height: 14),
             Wrap(spacing: 14, runSpacing: 14, children: [
@@ -150,7 +168,8 @@ class _NoticeFormState extends ConsumerState<_NoticeForm> {
                   value: _category,
                   decoration: const InputDecoration(labelText: 'Category'),
                   items: [
-                    for (final c in noticeCategories) DropdownMenuItem(value: c, child: Text(c)),
+                    for (final c in noticeCategories)
+                      DropdownMenuItem(value: c, child: Text(c)),
                   ],
                   onChanged: (v) => setState(() => _category = v ?? _category),
                 ),
@@ -170,7 +189,9 @@ class _NoticeFormState extends ConsumerState<_NoticeForm> {
                   final d = await pickDate(context, _expiry ?? _publish);
                   if (d != null) setState(() => _expiry = d);
                 },
-                onClear: _expiry == null ? null : () => setState(() => _expiry = null),
+                onClear: _expiry == null
+                    ? null
+                    : () => setState(() => _expiry = null),
               ),
             ]),
             const SizedBox(height: 14),
@@ -193,29 +214,41 @@ class _NoticeFormState extends ConsumerState<_NoticeForm> {
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: Container(
-                  width: 160, height: 160, color: AppColors.goldSoft, child: preview),
+                  width: 160,
+                  height: 160,
+                  color: AppColors.goldSoft,
+                  child: preview),
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                const Text('JPG, PNG or WebP up to 5 MB. Stored privately in Supabase Storage.',
-                    style: TextStyle(color: AppColors.muted)),
-                const SizedBox(height: 10),
-                Wrap(spacing: 8, children: [
-                  OutlinedButton.icon(
-                      onPressed: _pickImage,
-                      icon: const Icon(Icons.upload),
-                      label: const Text('Choose image')),
-                  if (_imageBytes != null || (existingUrl != null && !_removeImage))
-                    TextButton(
-                      onPressed: () => setState(() {
-                        _imageBytes = null;
-                        _removeImage = true;
-                      }),
-                      child: const Text('Remove'),
-                    ),
-                ]),
-              ]),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                        'JPG, PNG or WebP up to 5 MB. Stored privately in Supabase Storage.',
+                        style: TextStyle(color: AppColors.muted)),
+                    const SizedBox(height: 10),
+                    Wrap(spacing: 8, children: [
+                      OutlinedButton.icon(
+                          onPressed: _pickImage,
+                          icon: const Icon(Icons.upload),
+                          label: const Text('Choose image')),
+                      if (_imageBytes != null)
+                        OutlinedButton.icon(
+                            onPressed: _cropCurrentImage,
+                            icon: const Icon(Icons.crop),
+                            label: const Text('Crop image')),
+                      if (_imageBytes != null ||
+                          (existingUrl != null && !_removeImage))
+                        TextButton(
+                          onPressed: () => setState(() {
+                            _imageBytes = null;
+                            _removeImage = true;
+                          }),
+                          child: const Text('Remove'),
+                        ),
+                    ]),
+                  ]),
             ),
           ]),
         ),
@@ -225,10 +258,13 @@ class _NoticeFormState extends ConsumerState<_NoticeForm> {
             onPressed: busy ? null : _save,
             icon: busy
                 ? const SizedBox(
-                    width: 16, height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white))
                 : const Icon(Icons.save),
-            label: Text(widget.existing == null ? 'Create notice' : 'Save changes'),
+            label: Text(
+                widget.existing == null ? 'Create notice' : 'Save changes'),
           ),
         ),
       ]),
@@ -237,7 +273,11 @@ class _NoticeFormState extends ConsumerState<_NoticeForm> {
 }
 
 class _DateButton extends StatelessWidget {
-  const _DateButton({required this.label, required this.value, required this.onPick, this.onClear});
+  const _DateButton(
+      {required this.label,
+      required this.value,
+      required this.onPick,
+      this.onClear});
   final String label;
   final DateTime? value;
   final VoidCallback onPick;
@@ -254,7 +294,9 @@ class _DateButton extends StatelessWidget {
             labelText: label,
             suffixIcon: onClear == null
                 ? const Icon(Icons.calendar_today, size: 18)
-                : IconButton(icon: const Icon(Icons.clear, size: 18), onPressed: onClear),
+                : IconButton(
+                    icon: const Icon(Icons.clear, size: 18),
+                    onPressed: onClear),
           ),
           child: Text(value == null ? 'Not set' : fmtDate(value)),
         ),

@@ -30,7 +30,8 @@ void main() {
 
   test('register has clear headings and no personal contact columns', () {
     expect(table.headers, contains('Booking ref'));
-    expect(table.headers.any((h) => h.toLowerCase().contains('mobile')), isFalse);
+    expect(
+        table.headers.any((h) => h.toLowerCase().contains('mobile')), isFalse);
     expect(table.headers.any((h) => h.toLowerCase().contains('mail')), isFalse);
     expect(table.rows.single.first, 'EDC-2026-000001');
   });
@@ -46,5 +47,104 @@ void main() {
     expect(svc.buildXlsx(table).length, greaterThan(1000));
     final Uint8List pdf = await svc.buildPdf(table);
     expect(String.fromCharCodes(pdf.sublist(0, 4)), '%PDF');
+  });
+
+  test('approvalReport builds valid headers, rows, and exports correctly',
+      () async {
+    final approvalTable = ReportBuilder.approvalReport(
+      [
+        {
+          'reference': 'EDC-2026-000002',
+          'visitor_name': 'Alumni Guest',
+          'room_type': 'suite',
+          'stage_order': 1,
+          'stage_name': 'Final Approval',
+          'authority_label': 'EDC Administration',
+          'step_status': 'approved',
+          'decided_by': 'Admin',
+          'decided_at': '2026-11-04T10:00:00Z',
+          'reason': 'Room 101 allotted',
+        },
+        {
+          'reference': 'EDC-2026-000003',
+          'visitor_name': 'Rejected Applicant',
+          'room_type': 'standard',
+          'stage_order': 1,
+          'stage_name': 'Review Decision',
+          'authority_label': 'EDC Administration',
+          'step_status': 'rejected',
+          'decided_by': 'Admin',
+          'decided_at': '2026-11-04T11:00:00Z',
+          'reason': 'No vacancy',
+        },
+      ],
+      filters: {'Period': 'any'},
+      generatedBy: 'Admin',
+    );
+
+    expect(approvalTable.headers, contains('Booking ref'));
+    expect(approvalTable.headers, contains('Decision'));
+    expect(approvalTable.rows.length, 2);
+    expect(approvalTable.rows[0][0], 'EDC-2026-000002');
+    expect(approvalTable.rows[0][6], 'Approved');
+    expect(approvalTable.rows[1][6], 'Rejected');
+
+    final svc = ExportService();
+    expect(svc.buildXlsx(approvalTable).length, greaterThan(1000));
+    final Uint8List pdf = await svc.buildPdf(approvalTable);
+    expect(String.fromCharCodes(pdf.sublist(0, 4)), '%PDF');
+    final odsBytes = svc.buildOds(approvalTable);
+    expect(odsBytes.sublist(0, 2), [0x50, 0x4B]);
+  });
+
+  test(
+      'alumniDirectory builds valid headers, rows, and exports XLSX, ODS, and PDF',
+      () async {
+    final alumniTable = ReportBuilder.alumniDirectory(
+      [
+        {
+          'full_name': 'Aryan Jha',
+          'admission_no': '20JE0001',
+          'department_name': 'Computer Science & Engineering',
+          'batch_year': 2024,
+          'verification_status': 'verified',
+          'email': 'aryanjha@gmail.com',
+          'contact_no': '+919876543210',
+          'organisation': 'Google',
+          'current_position': 'Software Engineer',
+          'city': 'Bengaluru',
+          'created_at': '2026-10-25T10:00:00Z',
+        },
+        {
+          'full_name': 'Pending Alumnus',
+          'admission_no': '21JE0222',
+          'department_name': 'Mining Engineering',
+          'batch_year': 2025,
+          'verification_status': 'pending',
+          'email': 'pending@iitism.ac.in',
+          'contact_no': '+919811122233',
+          'organisation': 'IIT (ISM)',
+          'current_position': 'Student',
+          'city': 'Dhanbad',
+          'created_at': '2026-10-26T12:00:00Z',
+        },
+      ],
+      filters: {'Verification status': 'ALL'},
+      generatedBy: 'Admin',
+    );
+
+    expect(alumniTable.headers, contains('Full Name'));
+    expect(alumniTable.headers, contains('Verification'));
+    expect(alumniTable.rows.length, 2);
+    expect(alumniTable.rows[0][0], 'Aryan Jha');
+    expect(alumniTable.rows[0][4], 'VERIFIED');
+    expect(alumniTable.rows[1][4], 'PENDING');
+
+    final svc = ExportService();
+    expect(svc.buildXlsx(alumniTable).length, greaterThan(1000));
+    final Uint8List pdf = await svc.buildPdf(alumniTable);
+    expect(String.fromCharCodes(pdf.sublist(0, 4)), '%PDF');
+    final odsBytes = svc.buildOds(alumniTable);
+    expect(odsBytes.sublist(0, 2), [0x50, 0x4B]);
   });
 }

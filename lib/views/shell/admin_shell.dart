@@ -9,7 +9,8 @@ import '../../data/models/profile.dart';
 import '../../viewmodels/session_viewmodel.dart';
 
 class _NavItem {
-  const _NavItem(this.label, this.path, this.icon, this.selectedIcon, this.visible);
+  const _NavItem(
+      this.label, this.path, this.icon, this.selectedIcon, this.visible);
   final String label;
   final String path;
   final IconData icon;
@@ -18,18 +19,24 @@ class _NavItem {
 }
 
 final _items = <_NavItem>[
-  _NavItem('Dashboard', '/dashboard', Icons.dashboard_outlined, Icons.dashboard, (_) => true),
+  _NavItem('Dashboard', '/dashboard', Icons.dashboard_outlined, Icons.dashboard,
+      (_) => true),
   _NavItem('Notices', '/notices', Icons.campaign_outlined, Icons.campaign,
       (s) => s.can(Perm.noticeView)),
   _NavItem('Requests', '/requests', Icons.inbox_outlined, Icons.inbox,
       (s) => s.can(Perm.requestView)),
+  _NavItem('Alumni', '/alumni', Icons.verified_user_outlined,
+      Icons.verified_user, (_) => true),
   _NavItem('History', '/history', Icons.history, Icons.history,
       (s) => s.can(Perm.requestView)),
   _NavItem('Reports', '/reports', Icons.assessment_outlined, Icons.assessment,
       (s) => s.can(Perm.reportView)),
-  _NavItem('Tariffs', '/tariffs', Icons.receipt_long_outlined, Icons.receipt_long,
-      (s) => s.can(Perm.requestView)),
-  _NavItem('Administration', '/admin', Icons.admin_panel_settings_outlined,
+  _NavItem('Tariffs', '/tariffs', Icons.receipt_long_outlined,
+      Icons.receipt_long, (s) => s.can(Perm.requestView)),
+  _NavItem(
+      'Administration',
+      '/admin',
+      Icons.admin_panel_settings_outlined,
       Icons.admin_panel_settings,
       (s) => s.can(Perm.adminManage) || s.can(Perm.configManage)),
 ];
@@ -86,12 +93,16 @@ class _AdminShellState extends ConsumerState<AdminShell> {
     );
   }
 
-  PreferredSizeWidget _appBar(AdminSession session, String title, {bool showBrand = false}) {
+  PreferredSizeWidget _appBar(AdminSession session, String title,
+      {bool showBrand = false}) {
     return AppBar(
       automaticallyImplyLeading: false,
       titleSpacing: 16,
       title: Row(children: [
-        if (showBrand) ...[const BrandMark(size: 32, onDark: false), const SizedBox(width: 10)],
+        if (showBrand) ...[
+          const BrandMark(size: 32, onDark: false),
+          const SizedBox(width: 10)
+        ],
         Flexible(
           child: Text(title,
               overflow: TextOverflow.ellipsis,
@@ -117,12 +128,15 @@ class _AdminShellState extends ConsumerState<AdminShell> {
           itemBuilder: (_) => [
             PopupMenuItem(
               enabled: false,
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(session.profile.fullName,
-                    style: const TextStyle(fontWeight: FontWeight.w700)),
-                Text(session.profile.role.label,
-                    style: const TextStyle(fontSize: 12, color: AppColors.muted)),
-              ]),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(session.profile.fullName,
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
+                    Text(session.profile.role.label,
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.muted)),
+                  ]),
             ),
             const PopupMenuDivider(),
             const PopupMenuItem(value: 'out', child: Text('Sign out')),
@@ -169,7 +183,9 @@ class _AdminShellState extends ConsumerState<AdminShell> {
           NavigationRail(
             extended: _railExtended,
             selectedIndex: index,
-            labelType: _railExtended ? NavigationRailLabelType.none : NavigationRailLabelType.all,
+            labelType: _railExtended
+                ? NavigationRailLabelType.none
+                : NavigationRailLabelType.all,
             leading: IconButton(
               tooltip: _railExtended ? 'Collapse' : 'Expand',
               icon: Icon(_railExtended ? Icons.menu_open : Icons.menu),
@@ -209,8 +225,11 @@ class _AdminShellState extends ConsumerState<AdminShell> {
         destinations: [
           for (final i in primary)
             NavigationDestination(
-                icon: Icon(i.icon), selectedIcon: Icon(i.selectedIcon), label: i.label),
-          const NavigationDestination(icon: Icon(Icons.more_horiz), label: 'More'),
+                icon: Icon(i.icon),
+                selectedIcon: Icon(i.selectedIcon),
+                label: i.label),
+          const NavigationDestination(
+              icon: Icon(Icons.more_horiz), label: 'More'),
         ],
       ),
     );
@@ -248,12 +267,17 @@ class _Sidebar extends StatelessWidget {
                 child: Text(
                   'IIT (ISM) Dhanbad\nInstitutional Admin',
                   style: TextStyle(
-                      color: Colors.white, fontWeight: FontWeight.w700, height: 1.25),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      height: 1.25),
                 ),
               ),
             ]),
           ),
-          Container(height: 2, margin: const EdgeInsets.symmetric(horizontal: 18), color: AppColors.gold),
+          Container(
+              height: 2,
+              margin: const EdgeInsets.symmetric(horizontal: 18),
+              color: AppColors.gold),
           const SizedBox(height: 10),
           for (var i = 0; i < items.length; i++)
             Padding(
@@ -262,31 +286,78 @@ class _Sidebar extends StatelessWidget {
                 dense: true,
                 selected: i == selected,
                 selectedTileColor: AppColors.navyLight,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                leading: Icon(i == selected ? items[i].selectedIcon : items[i].icon,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: i == selected
+                      ? BorderSide(
+                          color: AppColors.gold.withAlpha(90), width: 1)
+                      : BorderSide.none,
+                ),
+                leading: Icon(
+                    i == selected ? items[i].selectedIcon : items[i].icon,
                     color: i == selected ? AppColors.gold : Colors.white70),
                 title: Text(items[i].label,
                     style: TextStyle(
                         color: i == selected ? Colors.white : Colors.white70,
-                        fontWeight: i == selected ? FontWeight.w700 : FontWeight.w500)),
+                        fontWeight:
+                            i == selected ? FontWeight.w700 : FontWeight.w500)),
                 onTap: () => onSelect(i),
               ),
             ),
           const Spacer(),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(session.profile.fullName,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-              Text(session.profile.role.label,
-                  style: const TextStyle(color: AppColors.gold, fontSize: 12)),
-              const SizedBox(height: 8),
-              TextButton.icon(
-                onPressed: onSignOut,
-                icon: const Icon(Icons.logout, size: 18, color: Colors.white70),
-                label: const Text('Sign out', style: TextStyle(color: Colors.white70)),
-              ),
-            ]),
+          Container(
+            margin: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.navyDark.withAlpha(140),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.white10),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 17,
+                  backgroundColor: AppColors.gold,
+                  child: Text(
+                    session.profile.fullName.isEmpty
+                        ? '?'
+                        : session.profile.fullName[0].toUpperCase(),
+                    style: const TextStyle(
+                        color: AppColors.navyDark,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        session.profile.fullName,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        session.profile.role.label,
+                        style: const TextStyle(
+                            color: AppColors.gold, fontSize: 11),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Sign out',
+                  icon:
+                      const Icon(Icons.logout, size: 18, color: Colors.white70),
+                  onPressed: onSignOut,
+                ),
+              ],
+            ),
           ),
         ]),
       ),

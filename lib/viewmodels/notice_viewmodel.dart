@@ -24,7 +24,8 @@ class NoticeFilterNotifier extends Notifier<NoticeFilter> {
 }
 
 final noticeFilterProvider =
-    NotifierProvider<NoticeFilterNotifier, NoticeFilter>(NoticeFilterNotifier.new);
+    NotifierProvider<NoticeFilterNotifier, NoticeFilter>(
+        NoticeFilterNotifier.new);
 
 final noticesProvider = FutureProvider.autoDispose<List<Notice>>((ref) {
   final f = ref.watch(noticeFilterProvider);
@@ -101,4 +102,5 @@ class NoticeActionsViewModel extends BusyNotifier {
 }
 
 final noticeActionsProvider =
-    NotifierProvider<NoticeActionsViewModel, BusyState>(NoticeActionsViewModel.new);
+    NotifierProvider<NoticeActionsViewModel, BusyState>(
+        NoticeActionsViewModel.new);

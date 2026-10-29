@@ -26,17 +26,22 @@ class RequestTile extends StatelessWidget {
         onTap: () => context.go('/requests/${r.id}'),
         child: Padding(
           padding: const EdgeInsets.all(14),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
               Text(r.reference,
-                  style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.navy)),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w800, color: AppColors.navy)),
               const Spacer(),
               StatusChip(r.status),
             ]),
             const SizedBox(height: 6),
-            Text(r.visitorName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+            Text(r.visitorName,
+                style:
+                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
             if ((r.organization ?? '').isNotEmpty)
-              Text(r.organization!, style: const TextStyle(color: AppColors.muted)),
+              Text(r.organization!,
+                  style: const TextStyle(color: AppColors.muted)),
             const SizedBox(height: 8),
             Wrap(spacing: 16, runSpacing: 4, children: [
               _meta(Icons.category_outlined, 'Category ${r.categoryLabel}'),
@@ -44,7 +49,8 @@ class RequestTile extends StatelessWidget {
                   '${roomTypes[r.roomType]} x${r.numRooms}'),
               _meta(Icons.login, fmtDateTime(r.arrivalAt)),
               _meta(Icons.logout, fmtDateTime(r.departureAt)),
-              if (r.allottedRoomNo != null) _meta(Icons.meeting_room_outlined, 'Room ${r.allottedRoomNo}'),
+              if (r.allottedRoomNo != null)
+                _meta(Icons.meeting_room_outlined, 'Room ${r.allottedRoomNo}'),
               if (r.estimatedAmount != null)
                 _meta(Icons.payments_outlined, fmtMoney(r.estimatedAmount)),
             ]),
@@ -54,7 +60,8 @@ class RequestTile extends StatelessWidget {
     );
   }
 
-  Widget _meta(IconData i, String t) => Row(mainAxisSize: MainAxisSize.min, children: [
+  Widget _meta(IconData i, String t) =>
+      Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(i, size: 15, color: AppColors.muted),
         const SizedBox(width: 4),
         Text(t, style: const TextStyle(fontSize: 12.5, color: AppColors.muted)),

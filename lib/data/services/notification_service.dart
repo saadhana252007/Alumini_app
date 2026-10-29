@@ -10,8 +10,8 @@ class NotificationService {
   /// Never throws: a failed e-mail must not undo a booking decision.
   Future<String> notify(String requestId, String event) async {
     try {
-      final res = await _c.functions
-          .invoke('send-notification', body: {'request_id': requestId, 'event': event});
+      final res = await _c.functions.invoke('send-notification',
+          body: {'request_id': requestId, 'event': event});
       final d = res.data;
       final mode = d is Map ? d['mode'] : null;
       if (mode == 'sent') return 'E-mail notification sent.';

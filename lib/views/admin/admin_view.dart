@@ -10,6 +10,7 @@ import '../../data/models/profile.dart';
 import '../../data/models/tariff.dart';
 import '../../viewmodels/admin_viewmodel.dart';
 import '../../viewmodels/session_viewmodel.dart';
+import 'alumni_verification_view.dart';
 
 /// Super-admin tools: accounts, role permissions, approval workflow, audit log.
 class AdminView extends ConsumerWidget {
@@ -21,13 +22,14 @@ class AdminView extends ConsumerWidget {
       title: 'Administration',
       subtitle: 'Accounts, permissions and approval configuration',
       child: DefaultTabController(
-        length: 4,
+        length: 5,
         child: Column(children: [
           const TabBar(
             isScrollable: true,
             labelColor: AppColors.navy,
             indicatorColor: AppColors.gold,
             tabs: [
+              Tab(text: 'Alumni Verification'),
               Tab(text: 'Accounts'),
               Tab(text: 'Permissions'),
               Tab(text: 'Approval workflow'),
@@ -37,6 +39,7 @@ class AdminView extends ConsumerWidget {
           const SizedBox(height: 12),
           const Expanded(
             child: TabBarView(children: [
+              AlumniVerificationView(),
               _AccountsTab(),
               _PermissionsTab(),
               _WorkflowTab(),
@@ -69,7 +72,10 @@ class _AccountsTab extends ConsumerWidget {
                 context: context, builder: (_) => const _AddAdminDialog());
             if (res == null) return;
             final o = await vm.createAdmin(
-                email: res.email, fullName: res.name, role: res.role, password: res.password);
+                email: res.email,
+                fullName: res.name,
+                role: res.role,
+                password: res.password);
             if (context.mounted) showOutcome(context, o);
           },
         ),
@@ -89,7 +95,8 @@ class _AccountsTab extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(10),
                     side: const BorderSide(color: AppColors.line)),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   child: Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
                     spacing: 16,
@@ -97,10 +104,16 @@ class _AccountsTab extends ConsumerWidget {
                     children: [
                       SizedBox(
                         width: 260,
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Text(p.fullName, style: const TextStyle(fontWeight: FontWeight.w700)),
-                          Text(p.email, style: const TextStyle(color: AppColors.muted, fontSize: 12.5)),
-                        ]),
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(p.fullName,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w700)),
+                              Text(p.email,
+                                  style: const TextStyle(
+                                      color: AppColors.muted, fontSize: 12.5)),
+                            ]),
                       ),
                       SizedBox(
                         width: 190,
@@ -109,13 +122,15 @@ class _AccountsTab extends ConsumerWidget {
                           decoration: const InputDecoration(labelText: 'Role'),
                           items: [
                             for (final r in AdminRole.values)
-                              DropdownMenuItem(value: r.db, child: Text(r.label)),
+                              DropdownMenuItem(
+                                  value: r.db, child: Text(r.label)),
                           ],
                           onChanged: p.id == me
                               ? null
                               : (v) async {
                                   if (v == null || v == p.role.db) return;
-                                  final o = await vm.updateProfile(p.id, role: v);
+                                  final o =
+                                      await vm.updateProfile(p.id, role: v);
                                   if (context.mounted) showOutcome(context, o);
                                 },
                         ),
@@ -127,7 +142,8 @@ class _AccountsTab extends ConsumerWidget {
                           onChanged: p.id == me
                               ? null
                               : (v) async {
-                                  final o = await vm.updateProfile(p.id, isActive: v);
+                                  final o =
+                                      await vm.updateProfile(p.id, isActive: v);
                                   if (context.mounted) showOutcome(context, o);
                                 },
                         ),
@@ -179,12 +195,15 @@ class _AddAdminDialogState extends State<_AddAdminDialog> {
         width: 400,
         child: SingleChildScrollView(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            TextField(controller: _name, decoration: const InputDecoration(labelText: 'Full name')),
+            TextField(
+                controller: _name,
+                decoration: const InputDecoration(labelText: 'Full name')),
             const SizedBox(height: 12),
             TextField(
                 controller: _email,
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(labelText: 'Institute e-mail')),
+                decoration:
+                    const InputDecoration(labelText: 'Institute e-mail')),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: _role,
@@ -209,7 +228,9 @@ class _AddAdminDialogState extends State<_AddAdminDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel')),
         FilledButton(
           onPressed: () => Navigator.pop(
               context, _NewAdmin(_name.text, _email.text, _role, _pw.text)),
@@ -243,7 +264,8 @@ class _PermissionsTab extends ConsumerWidget {
             child: DataTable(
               columns: [
                 const DataColumn(label: Text('Permission')),
-                for (final r in AdminRole.values) DataColumn(label: Text(r.label)),
+                for (final r in AdminRole.values)
+                  DataColumn(label: Text(r.label)),
               ],
               rows: [
                 for (final e in Perm.all.entries)
@@ -252,11 +274,14 @@ class _PermissionsTab extends ConsumerWidget {
                     for (final r in AdminRole.values)
                       DataCell(Checkbox(
                         value: m[r.db]?.contains(e.key) ?? false,
-                        onChanged: (r == AdminRole.superAdmin && e.key == Perm.adminManage)
+                        onChanged: (r == AdminRole.superAdmin &&
+                                e.key == Perm.adminManage)
                             ? null
                             : (v) async {
-                                final o = await vm.setPermission(r.db, e.key, v ?? false);
-                                if (context.mounted && !o.ok) showOutcome(context, o);
+                                final o = await vm.setPermission(
+                                    r.db, e.key, v ?? false);
+                                if (context.mounted && !o.ok)
+                                  showOutcome(context, o);
                               },
                       )),
                   ]),
@@ -277,10 +302,14 @@ class _WorkflowTab extends ConsumerWidget {
     final wf = ref.watch(workflowsProvider);
     final vm = ref.read(adminActionsProvider.notifier);
 
-    Future<void> edit({ApprovalStage? stage, required String roomType, required int nextOrder}) async {
+    Future<void> edit(
+        {ApprovalStage? stage,
+        required String roomType,
+        required int nextOrder}) async {
       final res = await showDialog<_StageEdit>(
           context: context,
-          builder: (_) => _StageDialog(stage: stage, roomType: roomType, nextOrder: nextOrder));
+          builder: (_) => _StageDialog(
+              stage: stage, roomType: roomType, nextOrder: nextOrder));
       if (res == null) return;
       final o = await vm.saveStage(
           id: stage?.id,
@@ -317,7 +346,10 @@ class _WorkflowTab extends ConsumerWidget {
                 final stages = all.where((s) => s.roomType == room.key);
                 final next = stages.isEmpty
                     ? 1
-                    : stages.map((s) => s.stageOrder).reduce((a, b) => a > b ? a : b) + 1;
+                    : stages
+                            .map((s) => s.stageOrder)
+                            .reduce((a, b) => a > b ? a : b) +
+                        1;
                 edit(roomType: room.key, nextOrder: next);
               },
             ),
@@ -327,9 +359,11 @@ class _WorkflowTab extends ConsumerWidget {
                   contentPadding: EdgeInsets.zero,
                   leading: CircleAvatar(
                       radius: 14,
-                      backgroundColor: s.isActive ? AppColors.navy : AppColors.line,
+                      backgroundColor:
+                          s.isActive ? AppColors.navy : AppColors.line,
                       child: Text('${s.stageOrder}',
-                          style: const TextStyle(color: Colors.white, fontSize: 12))),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 12))),
                   title: Text(s.stageName),
                   subtitle: Text(
                       '${s.authorityLabel}\nApprover role: ${roleLabels[s.approverRole]}${s.isActive ? '' : ' (inactive)'}'),
@@ -337,13 +371,17 @@ class _WorkflowTab extends ConsumerWidget {
                   trailing: Row(mainAxisSize: MainAxisSize.min, children: [
                     IconButton(
                         icon: const Icon(Icons.edit_outlined),
-                        onPressed: () => edit(stage: s, roomType: room.key, nextOrder: s.stageOrder)),
+                        onPressed: () => edit(
+                            stage: s,
+                            roomType: room.key,
+                            nextOrder: s.stageOrder)),
                     IconButton(
                       icon: const Icon(Icons.delete_outline),
                       onPressed: () async {
                         final ok = await confirmDialog(context,
                             title: 'Remove stage',
-                            message: 'Remove "${s.stageName}" from the ${room.value} workflow?',
+                            message:
+                                'Remove "${s.stageName}" from the ${room.value} workflow?',
                             confirm: 'Remove');
                         if (!ok) return;
                         final o = await vm.deleteStage(s.id);
@@ -360,7 +398,8 @@ class _WorkflowTab extends ConsumerWidget {
 }
 
 class _StageEdit {
-  const _StageEdit(this.order, this.name, this.authority, this.role, this.active);
+  const _StageEdit(
+      this.order, this.name, this.authority, this.role, this.active);
   final int order;
   final String name;
   final String authority;
@@ -369,7 +408,8 @@ class _StageEdit {
 }
 
 class _StageDialog extends StatefulWidget {
-  const _StageDialog({this.stage, required this.roomType, required this.nextOrder});
+  const _StageDialog(
+      {this.stage, required this.roomType, required this.nextOrder});
   final ApprovalStage? stage;
   final String roomType;
   final int nextOrder;
@@ -378,9 +418,11 @@ class _StageDialog extends StatefulWidget {
 }
 
 class _StageDialogState extends State<_StageDialog> {
-  late final _order = TextEditingController(text: '${widget.stage?.stageOrder ?? widget.nextOrder}');
+  late final _order = TextEditingController(
+      text: '${widget.stage?.stageOrder ?? widget.nextOrder}');
   late final _name = TextEditingController(text: widget.stage?.stageName ?? '');
-  late final _auth = TextEditingController(text: widget.stage?.authorityLabel ?? '');
+  late final _auth =
+      TextEditingController(text: widget.stage?.authorityLabel ?? '');
   late String _role = widget.stage?.approverRole ?? 'dean_admin';
   late bool _active = widget.stage?.isActive ?? true;
 
@@ -405,11 +447,14 @@ class _StageDialogState extends State<_StageDialog> {
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(labelText: 'Order')),
             const SizedBox(height: 12),
-            TextField(controller: _name, decoration: const InputDecoration(labelText: 'Stage name')),
+            TextField(
+                controller: _name,
+                decoration: const InputDecoration(labelText: 'Stage name')),
             const SizedBox(height: 12),
             TextField(
                 controller: _auth,
-                decoration: const InputDecoration(labelText: 'Authority (as on the form)')),
+                decoration: const InputDecoration(
+                    labelText: 'Authority (as on the form)')),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: _role,
@@ -430,11 +475,14 @@ class _StageDialogState extends State<_StageDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel')),
         FilledButton(
           onPressed: () => Navigator.pop(
               context,
-              _StageEdit(int.tryParse(_order.text.trim()) ?? 0, _name.text, _auth.text, _role, _active)),
+              _StageEdit(int.tryParse(_order.text.trim()) ?? 0, _name.text,
+                  _auth.text, _role, _active)),
           child: const Text('Save'),
         ),
       ],
@@ -460,9 +508,11 @@ class _AuditTab extends ConsumerWidget {
           final a = list[i];
           return ListTile(
             dense: true,
-            leading: const Icon(Icons.history, size: 18, color: AppColors.muted),
+            leading:
+                const Icon(Icons.history, size: 18, color: AppColors.muted),
             title: Text(a.description),
-            subtitle: Text('${a.actorName ?? 'System'} - ${fmtDateTime(a.createdAt)}'),
+            subtitle: Text(
+                '${a.actorName ?? 'System'} - ${fmtDateTime(a.createdAt)}'),
           );
         },
       ),

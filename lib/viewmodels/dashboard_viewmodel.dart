@@ -19,7 +19,8 @@ class DashboardData {
   final List<AuditEntry> activity;
 }
 
-final dashboardProvider = FutureProvider.autoDispose<DashboardData>((ref) async {
+final dashboardProvider =
+    FutureProvider.autoDispose<DashboardData>((ref) async {
   final session = ref.watch(sessionProvider).valueOrNull;
   if (session == null) throw Exception('Not signed in.');
   final repo = ref.watch(dashboardRepositoryProvider);
@@ -30,10 +31,12 @@ final dashboardProvider = FutureProvider.autoDispose<DashboardData>((ref) async 
           .watch(noticeRepositoryProvider)
           .list(status: 'published', activeOnly: true, limit: 4)
       : <Notice>[];
-  final arrivals =
-      session.can(Perm.requestView) ? await repo.upcomingArrivals() : <BookingRequest>[];
-  final activity =
-      session.can(Perm.reportView) ? await repo.recentActivity() : <AuditEntry>[];
+  final arrivals = session.can(Perm.requestView)
+      ? await repo.upcomingArrivals()
+      : <BookingRequest>[];
+  final activity = session.can(Perm.reportView)
+      ? await repo.recentActivity()
+      : <AuditEntry>[];
   return DashboardData(
       stats: stats, notices: notices, arrivals: arrivals, activity: activity);
 });

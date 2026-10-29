@@ -45,27 +45,32 @@ class _Body extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final busy = ref.watch(requestActionsProvider).busy;
-    final role = ref.session?.profile.role.db;
     final step = detail.currentStep;
     final open = RequestStatus.isOpen(r.status);
-    final canDecide = ref.can(Perm.requestDecide) && open && step != null && step.approverRole == role;
+    final canDecide =
+        (ref.can(Perm.requestDecide) || ref.can(Perm.requestManage)) && open;
     final canManage = ref.can(Perm.requestManage);
     final receipt = detail.receipt;
     final canPay = ref.can(Perm.paymentSimulate) &&
         receipt != null &&
         (receipt.total ?? 0) > 0 &&
         !detail.hasSuccessfulPayment &&
-        (r.status == RequestStatus.approved || r.status == RequestStatus.completed);
+        (r.status == RequestStatus.approved ||
+            r.status == RequestStatus.completed);
     final vm = ref.read(requestActionsProvider.notifier);
 
     Future<void> approve() async {
+      final stage = step?.stageName ?? 'Room Allotment & Confirmation';
       final res = await showDialog<({String? availability, String roomNo})>(
         context: context,
-        builder: (_) => _ApproveDialog(request: r, stageName: step!.stageName),
+        builder: (_) => _ApproveDialog(request: r, stageName: stage),
       );
       if (res == null) return;
       final o = await vm.decide(
-          id: r.id, approve: true, roomNo: res.roomNo, availability: res.availability);
+          id: r.id,
+          approve: true,
+          roomNo: res.roomNo,
+          availability: res.availability);
       if (context.mounted) showOutcome(context, o);
     }
 
@@ -73,7 +78,9 @@ class _Body extends ConsumerWidget {
       final reason = await showDialog<String>(
         context: context,
         builder: (_) => const _ReasonDialog(
-            title: 'Reject request', label: 'Rejection reason *', confirm: 'Reject'),
+            title: 'Reject request',
+            label: 'Rejection reason *',
+            confirm: 'Reject'),
       );
       if (reason == null) return;
       final o = await vm.decide(id: r.id, approve: false, reason: reason);
@@ -84,10 +91,13 @@ class _Body extends ConsumerWidget {
       final reason = await showDialog<String>(
         context: context,
         builder: (_) => const _ReasonDialog(
-            title: 'Cancel booking', label: 'Reason for cancellation *', confirm: 'Cancel booking'),
+            title: 'Cancel booking',
+            label: 'Reason for cancellation *',
+            confirm: 'Cancel booking'),
       );
       if (reason == null) return;
-      final o = await vm.setStatus(r.id, RequestStatus.cancelled, reason: reason);
+      final o =
+          await vm.setStatus(r.id, RequestStatus.cancelled, reason: reason);
       if (context.mounted) showOutcome(context, o);
     }
 
@@ -102,9 +112,11 @@ class _Body extends ConsumerWidget {
 
     Future<void> pay() async {
       final res = await showDialog<({String method, bool success})>(
-          context: context, builder: (_) => _PayDialog(amount: receipt!.total!));
+          context: context,
+          builder: (_) => _PayDialog(amount: receipt!.total!));
       if (res == null) return;
-      final o = await vm.simulatePayment(r.id, res.method, success: res.success);
+      final o =
+          await vm.simulatePayment(r.id, res.method, success: res.success);
       if (context.mounted) showOutcome(context, o);
     }
 
@@ -114,7 +126,8 @@ class _Body extends ConsumerWidget {
     }
 
     final guestTxt = r.guestDetails
-        .map((g) => '${g['relationship'] ?? ''} (age ${g['age'] ?? '-'}, ${g['gender'] ?? '-'})')
+        .map((g) =>
+            '${g['relationship'] ?? ''} (age ${g['age'] ?? '-'}, ${g['gender'] ?? '-'})')
         .join('; ');
 
     return ListView(padding: const EdgeInsets.only(bottom: 32), children: [
@@ -123,7 +136,8 @@ class _Body extends ConsumerWidget {
         trailing: StatusChip(r.status),
         accent: true,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('${r.visitorName} - Category ${r.categoryLabel} - ${roomTypes[r.roomType]}',
+          Text(
+              '${r.visitorName} - Category ${r.categoryLabel} - ${roomTypes[r.roomType]}',
               style: const TextStyle(fontWeight: FontWeight.w600)),
           if (r.status == RequestStatus.rejected && r.rejectionReason != null)
             Padding(
@@ -137,7 +151,8 @@ class _Body extends ConsumerWidget {
               FilledButton.icon(
                   onPressed: busy ? null : approve,
                   icon: const Icon(Icons.check),
-                  label: Text('Approve (${step!.stageName})')),
+                  label: Text(
+                      'Approve${step != null ? " (${step.stageName})" : ""}')),
               OutlinedButton.icon(
                   onPressed: busy ? null : reject,
                   icon: const Icon(Icons.close),
@@ -148,8 +163,7 @@ class _Body extends ConsumerWidget {
                   onPressed: busy ? null : complete,
                   icon: const Icon(Icons.task_alt),
                   label: const Text('Mark completed')),
-            if (canManage &&
-                (open || r.status == RequestStatus.approved))
+            if (canManage && (open || r.status == RequestStatus.approved))
               OutlinedButton.icon(
                   onPressed: busy ? null : cancel,
                   icon: const Icon(Icons.block),
@@ -185,17 +199,24 @@ class _Body extends ConsumerWidget {
           ('Mobile', r.mobile),
           ('E-mail', r.email ?? ''),
           ('Purpose of visit', humanize(r.purpose)),
-          ('Persons (lodging / food)', '${r.personsLodging} / ${r.personsFood}'),
+          (
+            'Persons (lodging / food)',
+            '${r.personsLodging} / ${r.personsFood}'
+          ),
           ('Children below 12', '${r.childrenUnder12}'),
           ('Rooms', '${r.numRooms}'),
           ('Visitor category', r.categoryLabel),
           ('Room type', roomTypes[r.roomType] ?? r.roomType),
           ('Arrival', fmtDateTime(r.arrivalAt)),
           ('Departure', fmtDateTime(r.departureAt)),
-          ('Lodging billed to', billingParties[r.lodgingBilledTo] ?? r.lodgingBilledTo),
+          (
+            'Lodging billed to',
+            billingParties[r.lodgingBilledTo] ?? r.lodgingBilledTo
+          ),
           ('Food billed to', billingParties[r.foodBilledTo] ?? r.foodBilledTo),
           if (r.isStudentGuest) ('Student guest(s)', guestTxt),
-          if (r.isStudentGuest) ('Forwarded by DSW', r.forwardedByDsw ? 'Yes' : 'No'),
+          if (r.isStudentGuest)
+            ('Forwarded by DSW', r.forwardedByDsw ? 'Yes' : 'No'),
           if (r.extendedStayApproved) ('Extended stay', 'Approved beforehand'),
         ]),
       ),
@@ -208,14 +229,22 @@ class _Body extends ConsumerWidget {
           ('Department', r.indenterDepartment ?? ''),
           ('Phone / mobile', r.indenterPhone ?? ''),
           ('E-mail', r.indenterEmail ?? ''),
-          ('Forwarded by', forwardingAuthorities[r.forwardingAuthority ?? ''] ?? ''),
+          (
+            'Forwarded by',
+            forwardingAuthorities[r.forwardingAuthority ?? ''] ?? ''
+          ),
         ]),
       ),
       SectionCard(
         title: 'For office use only',
         child: KvGrid([
           ('Status of booking', RequestStatus.label(r.status)),
-          ('Availability', r.availability == null ? 'Not yet recorded' : humanize(r.availability!)),
+          (
+            'Availability',
+            r.availability == null
+                ? 'Not yet recorded'
+                : humanize(r.availability!)
+          ),
           ('Suite / room no.', r.allottedRoomNo ?? 'Not yet allotted'),
         ]),
       ),
@@ -247,11 +276,19 @@ class _Body extends ConsumerWidget {
         ]),
       ),
       SectionCard(
-        title: receipt == null ? 'Estimated charges' : 'Receipt ${receipt.receiptNo}',
+        title: receipt == null
+            ? 'Estimated charges'
+            : 'Receipt ${receipt.receiptNo}',
         child: receipt == null
             ? KvGrid([
-                ('Estimated total (at submission)', fmtMoney(r.estimatedAmount)),
-                const ('Note', 'Final charges are fixed when the booking is approved.'),
+                (
+                  'Estimated total (at submission)',
+                  fmtMoney(r.estimatedAmount)
+                ),
+                const (
+                  'Note',
+                  'Final charges are fixed when the booking is approved.'
+                ),
               ])
             : _ReceiptBlock(receipt: receipt),
       ),
@@ -265,31 +302,46 @@ class _Body extends ConsumerWidget {
                   for (final p in detail.payments)
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.science_outlined, color: AppColors.gold),
-                      title: Text('${fmtMoney(p.amount)} - ${humanize(p.method)}'),
-                      subtitle: Text('SIMULATED - ref ${p.reference} - ${fmtDateTime(p.createdAt)}'),
+                      leading: const Icon(Icons.science_outlined,
+                          color: AppColors.gold),
+                      title:
+                          Text('${fmtMoney(p.amount)} - ${humanize(p.method)}'),
+                      subtitle: Text(
+                          'SIMULATED - ref ${p.reference} - ${fmtDateTime(p.createdAt)}'),
                       trailing: StatusChip(p.status,
-                          label: p.isSuccess ? 'Simulated: success' : 'Simulated: failed'),
+                          label: p.isSuccess
+                              ? 'Simulated: success'
+                              : 'Simulated: failed'),
                     ),
                 ]),
         ),
       SectionCard(
         title: 'E-mail notifications',
         child: detail.notifications.isEmpty
-            ? const Text('None recorded.', style: TextStyle(color: AppColors.muted))
+            ? const Text('None recorded.',
+                style: TextStyle(color: AppColors.muted))
             : Column(children: [
                 for (final n in detail.notifications)
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     dense: true,
-                    leading: Icon(n.mode == 'sent' ? Icons.mark_email_read : Icons.mail_outline,
-                        color: n.mode == 'failed' ? AppColors.danger : AppColors.muted),
+                    leading: Icon(
+                        n.mode == 'sent'
+                            ? Icons.mark_email_read
+                            : Icons.mail_outline,
+                        color: n.mode == 'failed'
+                            ? AppColors.danger
+                            : AppColors.muted),
                     title: Text(n.subject),
-                    subtitle: Text('${n.recipient} - ${fmtDateTime(n.createdAt)}'),
-                    trailing: Text(n.mode == 'simulated' ? 'SIMULATED' : humanize(n.mode),
+                    subtitle:
+                        Text('${n.recipient} - ${fmtDateTime(n.createdAt)}'),
+                    trailing: Text(
+                        n.mode == 'simulated' ? 'SIMULATED' : humanize(n.mode),
                         style: TextStyle(
                             fontWeight: FontWeight.w700,
-                            color: n.mode == 'sent' ? AppColors.success : AppColors.warning)),
+                            color: n.mode == 'sent'
+                                ? AppColors.success
+                                : AppColors.warning)),
                   ),
               ]),
       ),
@@ -301,9 +353,11 @@ class _Body extends ConsumerWidget {
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 dense: true,
-                leading: const Icon(Icons.history, size: 18, color: AppColors.muted),
+                leading:
+                    const Icon(Icons.history, size: 18, color: AppColors.muted),
                 title: Text(a.description),
-                subtitle: Text('${a.actorName ?? 'System'} - ${fmtDateTime(a.createdAt)}'),
+                subtitle: Text(
+                    '${a.actorName ?? 'System'} - ${fmtDateTime(a.createdAt)}'),
               ),
           ]),
         ),
@@ -325,13 +379,17 @@ class _ReceiptBlock extends StatelessWidget {
         ('Tariff basis', humanize(b.unit)),
         ('Rate', b.unitRate == null ? '-' : fmtMoney(b.unitRate)),
         ('Subtotal', fmtMoney(b.subtotal)),
-        ('GST @ ${b.gstPercent.toStringAsFixed(2)}%', fmtMoney(b.gst, whenNull: '-')),
+        (
+          'GST @ ${b.gstPercent.toStringAsFixed(2)}%',
+          fmtMoney(b.gst, whenNull: '-')
+        ),
         ('Total', b.isFree ? 'Free (Category A)' : fmtMoney(receipt.total)),
       ], width: 200),
       if (b.note != null)
         Padding(
           padding: const EdgeInsets.only(top: 8),
-          child: Text(b.note!, style: const TextStyle(fontSize: 12, color: AppColors.muted)),
+          child: Text(b.note!,
+              style: const TextStyle(fontSize: 12, color: AppColors.muted)),
         ),
     ]);
   }
@@ -363,7 +421,8 @@ class _ApproveDialogState extends State<_ApproveDialog> {
       content: SizedBox(
         width: 380,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Text('Office use: confirm availability and room allotment. '
+          const Text(
+              'Office use: confirm availability and room allotment. '
               'Final approval requires "Available" and a room number.',
               style: TextStyle(color: AppColors.muted)),
           const SizedBox(height: 14),
@@ -372,9 +431,11 @@ class _ApproveDialogState extends State<_ApproveDialog> {
             decoration: const InputDecoration(labelText: 'Availability'),
             items: const [
               DropdownMenuItem(value: 'available', child: Text('Available')),
-              DropdownMenuItem(value: 'not_available', child: Text('Not available')),
+              DropdownMenuItem(
+                  value: 'not_available', child: Text('Not available')),
             ],
-            onChanged: (v) => setState(() => _availability = v ?? _availability),
+            onChanged: (v) =>
+                setState(() => _availability = v ?? _availability),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -384,10 +445,12 @@ class _ApproveDialogState extends State<_ApproveDialog> {
         ]),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel')),
         FilledButton(
-          onPressed: () =>
-              Navigator.pop(context, (availability: _availability, roomNo: _room.text)),
+          onPressed: () => Navigator.pop(
+              context, (availability: _availability, roomNo: _room.text)),
           child: const Text('Approve'),
         ),
       ],
@@ -396,7 +459,8 @@ class _ApproveDialogState extends State<_ApproveDialog> {
 }
 
 class _ReasonDialog extends StatefulWidget {
-  const _ReasonDialog({required this.title, required this.label, required this.confirm});
+  const _ReasonDialog(
+      {required this.title, required this.label, required this.confirm});
   final String title;
   final String label;
   final String confirm;
@@ -427,9 +491,12 @@ class _ReasonDialogState extends State<_ReasonDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Back')),
+        TextButton(
+            onPressed: () => Navigator.pop(context), child: const Text('Back')),
         FilledButton(
-          onPressed: _c.text.trim().length < 3 ? null : () => Navigator.pop(context, _c.text.trim()),
+          onPressed: _c.text.trim().length < 3
+              ? null
+              : () => Navigator.pop(context, _c.text.trim()),
           child: Text(widget.confirm),
         ),
       ],
@@ -454,47 +521,57 @@ class _PayDialogState extends State<_PayDialog> {
       title: const Text('Simulate payment'),
       content: SizedBox(
         width: 400,
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-                color: AppColors.goldSoft, borderRadius: BorderRadius.circular(8)),
-            child: const Text(
-              'PROTOTYPE SIMULATION ONLY. No real money is transferred; the '
-              'result is stored in the database and labelled as simulated.',
-              style: TextStyle(fontSize: 12.5),
-            ),
-          ),
-          const SizedBox(height: 14),
-          Text('Amount: ${fmtMoney(widget.amount)}',
-              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            value: _method,
-            decoration: const InputDecoration(labelText: 'Method (simulated)'),
-            items: const [
-              DropdownMenuItem(value: 'upi', child: Text('UPI')),
-              DropdownMenuItem(value: 'card', child: Text('Card / POS')),
-              DropdownMenuItem(value: 'net_banking', child: Text('Net banking')),
-              DropdownMenuItem(value: 'cash', child: Text('Cash at EDC')),
-            ],
-            onChanged: (v) => setState(() => _method = v ?? _method),
-          ),
-          const SizedBox(height: 12),
-          SegmentedButton<bool>(
-            segments: const [
-              ButtonSegment(value: true, label: Text('Succeed')),
-              ButtonSegment(value: false, label: Text('Fail')),
-            ],
-            selected: {_success},
-            onSelectionChanged: (s) => setState(() => _success = s.first),
-          ),
-        ]),
+        child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                    color: AppColors.goldSoft,
+                    borderRadius: BorderRadius.circular(8)),
+                child: const Text(
+                  'PROTOTYPE SIMULATION ONLY. No real money is transferred; the '
+                  'result is stored in the database and labelled as simulated.',
+                  style: TextStyle(fontSize: 12.5),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text('Amount: ${fmtMoney(widget.amount)}',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700, fontSize: 16)),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: _method,
+                decoration:
+                    const InputDecoration(labelText: 'Method (simulated)'),
+                items: const [
+                  DropdownMenuItem(value: 'upi', child: Text('UPI')),
+                  DropdownMenuItem(value: 'card', child: Text('Card / POS')),
+                  DropdownMenuItem(
+                      value: 'net_banking', child: Text('Net banking')),
+                  DropdownMenuItem(value: 'cash', child: Text('Cash at EDC')),
+                ],
+                onChanged: (v) => setState(() => _method = v ?? _method),
+              ),
+              const SizedBox(height: 12),
+              SegmentedButton<bool>(
+                segments: const [
+                  ButtonSegment(value: true, label: Text('Succeed')),
+                  ButtonSegment(value: false, label: Text('Fail')),
+                ],
+                selected: {_success},
+                onSelectionChanged: (s) => setState(() => _success = s.first),
+              ),
+            ]),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel')),
         FilledButton(
-          onPressed: () => Navigator.pop(context, (method: _method, success: _success)),
+          onPressed: () =>
+              Navigator.pop(context, (method: _method, success: _success)),
           child: const Text('Run simulation'),
         ),
       ],

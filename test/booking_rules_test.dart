@@ -64,8 +64,10 @@ void main() {
 
   group('RequestStatus.canTransition', () {
     test('allows the documented flow', () {
-      expect(RequestStatus.canTransition('pending', 'awaiting_approval'), isTrue);
-      expect(RequestStatus.canTransition('awaiting_approval', 'approved'), isTrue);
+      expect(
+          RequestStatus.canTransition('pending', 'awaiting_approval'), isTrue);
+      expect(
+          RequestStatus.canTransition('awaiting_approval', 'approved'), isTrue);
       expect(RequestStatus.canTransition('approved', 'completed'), isTrue);
       expect(RequestStatus.canTransition('approved', 'cancelled'), isTrue);
     });

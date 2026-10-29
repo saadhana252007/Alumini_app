@@ -18,7 +18,8 @@ class AuthRepository {
     if (user == null) return null;
     final row =
         await _c.from('profiles').select().eq('id', user.id).maybeSingle();
-    if (row == null || row['is_active'] != true) return null;
+    if (row == null || row['is_active'] != true || row['role'] == 'alumni')
+      return null;
     final perms = await _c
         .from('role_permissions')
         .select('permission')

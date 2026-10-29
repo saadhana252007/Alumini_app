@@ -23,12 +23,14 @@ class ReceiptPdfService {
 
   pw.Widget _kv(String k, String v) => pw.Padding(
         padding: const pw.EdgeInsets.symmetric(vertical: 2),
-        child: pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+        child:
+            pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
           pw.SizedBox(
               width: 120,
               child: pw.Text(k,
                   style: pw.TextStyle(fontSize: 9, color: PdfColors.grey700))),
-          pw.Expanded(child: pw.Text(v, style: const pw.TextStyle(fontSize: 9.5))),
+          pw.Expanded(
+              child: pw.Text(v, style: const pw.TextStyle(fontSize: 9.5))),
         ]),
       );
 
@@ -47,7 +49,8 @@ class ReceiptPdfService {
     final rc = d.receipt;
     final b = rc?.breakdown;
     final doc = pw.Document(
-        title: 'Booking receipt ${r.reference}', author: 'IIT (ISM) Dhanbad - EDC');
+        title: 'Booking receipt ${r.reference}',
+        author: 'IIT (ISM) Dhanbad - EDC');
 
     doc.addPage(
       pw.MultiPage(
@@ -61,15 +64,20 @@ class ReceiptPdfService {
         build: (ctx) => [
           pw.Center(
             child: pw.Column(children: [
-              pw.Text('Indian Institute of Technology (Indian School of Mines), Dhanbad',
+              pw.Text(
+                  'Indian Institute of Technology (Indian School of Mines), Dhanbad',
                   style: pw.TextStyle(
-                      fontSize: 13, fontWeight: pw.FontWeight.bold, color: _navy)),
+                      fontSize: 13,
+                      fontWeight: pw.FontWeight.bold,
+                      color: _navy)),
               pw.Text('Executive Development Centre',
                   style: const pw.TextStyle(fontSize: 10)),
               pw.SizedBox(height: 4),
               pw.Text('ACCOMMODATION BOOKING RECEIPT',
                   style: pw.TextStyle(
-                      fontSize: 12, fontWeight: pw.FontWeight.bold, color: _gold)),
+                      fontSize: 12,
+                      fontWeight: pw.FontWeight.bold,
+                      color: _gold)),
             ]),
           ),
           pw.Divider(color: _gold, thickness: 1.4),
@@ -77,15 +85,16 @@ class ReceiptPdfService {
           _kv('Booking reference', r.reference),
           _kv('Issued on', fmtDateTime(rc?.issuedAt)),
           _kv('Booking status', RequestStatus.label(r.status)),
-
           _section('Visitor & booking'),
           _kv('Visitor', r.visitorName),
           _kv('Organisation', r.organization ?? '-'),
           _kv('Nationality', humanize(r.nationality)),
           _kv('Purpose', humanize(r.purpose)),
-          _kv('Visitor category', visitorCategories[r.category]?.split(' - ').first ?? r.category),
+          _kv('Visitor category',
+              visitorCategories[r.category]?.split(' - ').first ?? r.category),
           _kv('Room type', roomTypes[r.roomType] ?? r.roomType),
-          _kv('Rooms / persons', '${r.numRooms} room(s), ${r.personsLodging} person(s) lodging'),
+          _kv('Rooms / persons',
+              '${r.numRooms} room(s), ${r.personsLodging} person(s) lodging'),
           _kv('Allotted room no.', r.allottedRoomNo ?? '-'),
           _kv('Arrival', fmtDateTime(r.arrivalAt)),
           _kv('Departure', fmtDateTime(r.departureAt)),
@@ -93,16 +102,17 @@ class ReceiptPdfService {
               'Lodging: ${billingParties[r.lodgingBilledTo] ?? r.lodgingBilledTo}; Food: ${billingParties[r.foodBilledTo] ?? r.foodBilledTo}'),
           _kv('Indenter',
               '${r.indenterName}${r.indenterDepartment == null ? '' : ', ${r.indenterDepartment}'}'),
-
           _section('Charges'),
           if (b == null)
-            pw.Text('No receipt has been issued yet.', style: const pw.TextStyle(fontSize: 9))
+            pw.Text('No receipt has been issued yet.',
+                style: const pw.TextStyle(fontSize: 9))
           else ...[
             _kv('Billable days', '${b.days}'),
             _kv('Tariff basis', humanize(b.unit)),
             _kv('Rate', b.unitRate == null ? '-' : fmtMoney(b.unitRate)),
             _kv('Subtotal', fmtMoney(b.subtotal, whenNull: 'To be determined')),
-            _kv('GST @ ${b.gstPercent.toStringAsFixed(2)}%', fmtMoney(b.gst, whenNull: '-')),
+            _kv('GST @ ${b.gstPercent.toStringAsFixed(2)}%',
+                fmtMoney(b.gst, whenNull: '-')),
             pw.SizedBox(height: 3),
             pw.Container(
               padding: const pw.EdgeInsets.all(6),
@@ -111,10 +121,12 @@ class ReceiptPdfService {
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text('TOTAL',
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
+                      style: pw.TextStyle(
+                          fontSize: 11, fontWeight: pw.FontWeight.bold)),
                   pw.Text(
                       b.isFree ? 'Complimentary (Rs. 0.00)' : fmtMoney(b.total),
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
+                      style: pw.TextStyle(
+                          fontSize: 11, fontWeight: pw.FontWeight.bold)),
                 ],
               ),
             ),
@@ -124,7 +136,6 @@ class ReceiptPdfService {
                 child: pw.Text(b.note!, style: const pw.TextStyle(fontSize: 8)),
               ),
           ],
-
           _section('Approval trail'),
           pw.TableHelper.fromTextArray(
             headers: const ['Stage', 'Authority', 'Decision', 'By', 'On'],
@@ -138,15 +149,17 @@ class ReceiptPdfService {
                     ])
                 .toList(),
             headerStyle: pw.TextStyle(
-                fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.white),
+                fontSize: 8,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.white),
             headerDecoration: pw.BoxDecoration(color: _navy),
             cellStyle: const pw.TextStyle(fontSize: 8),
             border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.4),
           ),
-
           _section('Payment (prototype simulation)'),
           if (d.payments.isEmpty)
-            pw.Text('No payment recorded.', style: const pw.TextStyle(fontSize: 9))
+            pw.Text('No payment recorded.',
+                style: const pw.TextStyle(fontSize: 9))
           else
             ...d.payments.map((p) => _kv(
                   fmtDateTime(p.createdAt),

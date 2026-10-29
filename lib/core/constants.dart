@@ -41,10 +41,14 @@ const roleLabels = <String, String>{
 /// Visitor categories as in the EDC form (Section II).
 const visitorCategories = <String, String>{
   'A': 'A - Institute guest (free boarding & lodging)',
-  'B': 'B - Concession rate (retired faculty/officers, relatives of serving staff)',
-  'C': 'C - Official rate (parents/guardian/spouse of students, scholars, alumni)',
-  'D': 'D - Full rate (external/official guests, EDP participants, other institutes)',
-  'E': 'E - Foreign guests / Chair & Visiting Professors / quarters-entitled staff',
+  'B':
+      'B - Concession rate (retired faculty/officers, relatives of serving staff)',
+  'C':
+      'C - Official rate (parents/guardian/spouse of students, scholars, alumni)',
+  'D':
+      'D - Full rate (external/official guests, EDP participants, other institutes)',
+  'E':
+      'E - Foreign guests / Chair & Visiting Professors / quarters-entitled staff',
 };
 
 const eSubCategories = <String, String>{
@@ -53,7 +57,10 @@ const eSubCategories = <String, String>{
   'c': 'E(c) Employee entitled to quarters (license fee)',
 };
 
-const roomTypes = <String, String>{'suite': 'Suite', 'standard': 'Standard Room'};
+const roomTypes = <String, String>{
+  'suite': 'Suite',
+  'standard': 'Standard Room'
+};
 
 const billingParties = <String, String>{
   'visitor': 'Visitor',

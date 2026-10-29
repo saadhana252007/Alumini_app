@@ -244,16 +244,35 @@ begin
   if not public.has_permission('report.export') then
     raise exception 'You do not have permission to export reports.' using errcode = '42501';
   end if;
-  select coalesce(jsonb_agg(to_jsonb(t) order by t.reference, t.stage_order), '[]'::jsonb) into result
+  select coalesce(jsonb_agg(to_jsonb(t) order by t.decided_at desc, t.reference), '[]'::jsonb) into result
   from (
     select r.reference, r.visitor_name, r.room_type, s.stage_order, s.stage_name, s.authority_label,
-           s.status as step_status, pr.full_name as decided_by, s.decided_at, s.reason
+           s.status as step_status, coalesce(pr.full_name, 'Admin') as decided_by, s.decided_at, s.reason
       from public.approval_steps s
       join public.booking_requests r on r.id = s.request_id
       left join public.profiles pr on pr.id = s.decided_by
      where s.status in ('approved','rejected')
        and (p_from is null or s.decided_at::date >= p_from)
        and (p_to   is null or s.decided_at::date <= p_to)
+
+    union all
+
+    select r.reference, r.visitor_name, r.room_type,
+           1 as stage_order,
+           case when r.status = 'approved' then 'Direct Approval' else 'Direct Decision' end as stage_name,
+           'EDC Administration' as authority_label,
+           r.status as step_status,
+           'EDC Admin' as decided_by,
+           coalesce(r.updated_at, r.created_at) as decided_at,
+           coalesce(r.rejection_reason, case when r.allotted_room_no is not null and r.allotted_room_no <> '' then 'Room ' || r.allotted_room_no else null end, '') as reason
+      from public.booking_requests r
+     where r.status in ('approved','rejected')
+       and not exists (
+         select 1 from public.approval_steps s2 
+          where s2.request_id = r.id and s2.status in ('approved','rejected')
+       )
+       and (p_from is null or coalesce(r.updated_at, r.created_at)::date >= p_from)
+       and (p_to   is null or coalesce(r.updated_at, r.created_at)::date <= p_to)
   ) t;
   insert into public.audit_logs (actor_id, action, entity_type, details)
   values (auth.uid(), 'report.exported', 'report',

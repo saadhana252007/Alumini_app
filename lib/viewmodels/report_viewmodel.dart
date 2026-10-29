@@ -10,7 +10,7 @@ import 'busy.dart';
 import 'request_viewmodel.dart';
 import 'session_viewmodel.dart';
 
-enum ReportKind { register, approvals }
+enum ReportKind { register, approvals, alumni }
 
 class ReportState {
   const ReportState({this.busy = false, this.table, this.error});
@@ -26,7 +26,8 @@ class ReportsViewModel extends Notifier<ReportState> {
   ReportState build() => const ReportState();
 
   String get _who =>
-      ref.read(sessionProvider).valueOrNull?.profile.fullName ?? 'Administrator';
+      ref.read(sessionProvider).valueOrNull?.profile.fullName ??
+      'Administrator';
 
   Future<ReportTable> _load({
     required ReportKind kind,
@@ -36,20 +37,33 @@ class ReportsViewModel extends Notifier<ReportState> {
     String? category,
   }) async {
     final repo = ref.read(reportRepositoryProvider);
+    if (kind == ReportKind.alumni) {
+      final rows = await repo.alumniReport(from: from, to: to, status: status);
+      return ReportBuilder.alumniDirectory(rows,
+          filters: {
+            'Period':
+                '${from == null ? 'any' : fmtDate(from)} to ${to == null ? 'any' : fmtDate(to)}',
+            'Verification status': status == null ? 'All' : status.toUpperCase(),
+          },
+          generatedBy: _who);
+    }
+
     final filters = <String, String>{
-      'Period': '${from == null ? 'any' : fmtDate(from)} to ${to == null ? 'any' : fmtDate(to)}',
+      'Period':
+          '${from == null ? 'any' : fmtDate(from)} to ${to == null ? 'any' : fmtDate(to)}',
       if (kind == ReportKind.register)
         'Status filter': status == null ? 'All' : RequestStatus.label(status),
-      if (kind == ReportKind.register)
-        'Category filter': category == null ? 'All' : category,
+      if (kind == ReportKind.register) 'Category filter': category ?? 'All',
     };
     if (kind == ReportKind.register) {
       final rows = await repo.bookingRegister(
           from: from, to: to, status: status, category: category);
-      return ReportBuilder.bookingRegister(rows, filters: filters, generatedBy: _who);
+      return ReportBuilder.bookingRegister(rows,
+          filters: filters, generatedBy: _who);
     }
     final rows = await repo.approvalReport(from: from, to: to);
-    return ReportBuilder.approvalReport(rows, filters: filters, generatedBy: _who);
+    return ReportBuilder.approvalReport(rows,
+        filters: filters, generatedBy: _who);
   }
 
   Future<void> generate({
@@ -73,9 +87,12 @@ class ReportsViewModel extends Notifier<ReportState> {
   Future<Outcome> export(ExportFormat format) async {
     final t = state.table;
     if (t == null) return const Outcome.fail('Generate the report first.');
+    final baseName = kind == ReportKind.alumni
+        ? 'iitism-alumni-directory'
+        : (kind == ReportKind.register ? 'edc-booking-register' : 'edc-approvals');
     try {
       final where = await ref.read(exportServiceProvider).export(t, format,
-          baseName: kind == ReportKind.register ? 'edc-booking-register' : 'edc-approvals');
+          baseName: baseName);
       return Outcome.ok('Saved: $where');
     } catch (e) {
       return Outcome.fail(friendlyError(e));

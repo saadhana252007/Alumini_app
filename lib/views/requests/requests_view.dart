@@ -59,12 +59,15 @@ class RequestsView extends ConsumerWidget {
             child: DropdownButtonFormField<String>(
               value: filter.statuses.length != 1
                   ? 'all'
-                  : (filter.statuses.first == RequestStatus.pending ? 'pending' : 'awaiting'),
+                  : (filter.statuses.first == RequestStatus.pending
+                      ? 'pending'
+                      : 'awaiting'),
               decoration: const InputDecoration(labelText: 'Stage'),
               items: const [
                 DropdownMenuItem(value: 'all', child: Text('All open')),
                 DropdownMenuItem(value: 'pending', child: Text('Pending')),
-                DropdownMenuItem(value: 'awaiting', child: Text('Awaiting Approval')),
+                DropdownMenuItem(
+                    value: 'awaiting', child: Text('Awaiting Approval')),
               ],
               onChanged: (v) => notifier.setStatuses(switch (v) {
                 'pending' => const [RequestStatus.pending],
@@ -75,7 +78,10 @@ class RequestsView extends ConsumerWidget {
           ),
         ]),
         const SizedBox(height: 12),
-        Expanded(child: _RequestList(value: list, onRetry: () => ref.invalidate(incomingRequestsProvider))),
+        Expanded(
+            child: _RequestList(
+                value: list,
+                onRetry: () => ref.invalidate(incomingRequestsProvider))),
       ]),
     );
   }

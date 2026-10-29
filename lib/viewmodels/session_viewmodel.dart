@@ -8,8 +8,8 @@ import '../core/utils/errors.dart';
 import '../data/models/profile.dart';
 import 'busy.dart';
 
-final sessionProvider =
-    AsyncNotifierProvider<SessionViewModel, AdminSession?>(SessionViewModel.new);
+final sessionProvider = AsyncNotifierProvider<SessionViewModel, AdminSession?>(
+    SessionViewModel.new);
 
 class SessionViewModel extends AsyncNotifier<AdminSession?> {
   StreamSubscription<AuthState>? _sub;
@@ -59,8 +59,9 @@ class SessionViewModel extends AsyncNotifier<AdminSession?> {
 
 class LoginViewModel extends BusyNotifier {
   Future<Outcome> submit(String email, String password) => run(() async {
-        final err =
-            await ref.read(sessionProvider.notifier).signIn(email.trim(), password);
+        final err = await ref
+            .read(sessionProvider.notifier)
+            .signIn(email.trim(), password);
         if (err != null) throw Exception(err);
         return null;
       });

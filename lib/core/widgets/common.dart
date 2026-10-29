@@ -21,13 +21,21 @@ class BrandMark extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: onDark ? Colors.white : AppColors.navy,
+        color: Colors.white,
         border: Border.all(color: AppColors.gold, width: 2),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x15000000),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       clipBehavior: Clip.antiAlias,
+      padding: EdgeInsets.all(size * 0.05),
       child: Image.asset(
         'assets/branding/logo.png',
-        fit: BoxFit.cover,
+        fit: BoxFit.contain,
         errorBuilder: (_, __, ___) => Center(
           child: Text(
             'ISM',
@@ -69,7 +77,8 @@ class PageScaffold extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 1240),
         child: Padding(
-          padding: EdgeInsets.fromLTRB(narrow ? 12 : 24, 16, narrow ? 12 : 24, 0),
+          padding:
+              EdgeInsets.fromLTRB(narrow ? 12 : 24, 16, narrow ? 12 : 24, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -80,16 +89,19 @@ class PageScaffold extends StatelessWidget {
                     IconButton(
                       tooltip: 'Back',
                       icon: const Icon(Icons.arrow_back),
-                      onPressed: () =>
-                          context.canPop() ? context.pop() : context.go(backTo!),
+                      onPressed: () => context.canPop()
+                          ? context.pop()
+                          : context.go(backTo!),
                     ),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(title,
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: AppColors.navy)),
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(color: AppColors.navy)),
                         if (subtitle != null)
                           Text(subtitle!,
                               style: const TextStyle(color: AppColors.muted)),
@@ -132,26 +144,43 @@ class SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 14),
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-        side: BorderSide(color: accent ? AppColors.gold : AppColors.line),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: accent ? AppColors.gold : AppColors.line,
+          width: accent ? 1.5 : 1,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x060B2545),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(children: [
+              if (accent)
+                Container(
+                  width: 4,
+                  height: 18,
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.gold,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               Expanded(
                 child: Text(title,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(color: AppColors.navy, fontWeight: FontWeight.w700)),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: AppColors.navy, fontWeight: FontWeight.w700)),
               ),
               if (trailing != null) trailing!,
             ]),
@@ -184,7 +213,9 @@ class KvGrid extends StatelessWidget {
               children: [
                 Text(k,
                     style: const TextStyle(
-                        fontSize: 12, color: AppColors.muted, letterSpacing: 0.2)),
+                        fontSize: 12,
+                        color: AppColors.muted,
+                        letterSpacing: 0.2)),
                 const SizedBox(height: 2),
                 SelectableText(v.isEmpty ? '-' : v,
                     style: const TextStyle(fontWeight: FontWeight.w500)),
@@ -232,9 +263,21 @@ class StatusChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.tint(c, 0.4)),
       ),
-      child: Text(
-        label ?? RequestStatus.label(status),
-        style: TextStyle(color: c, fontWeight: FontWeight.w700, fontSize: 12),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            margin: const EdgeInsets.only(right: 6),
+            decoration: BoxDecoration(color: c, shape: BoxShape.circle),
+          ),
+          Text(
+            label ?? RequestStatus.label(status),
+            style:
+                TextStyle(color: c, fontWeight: FontWeight.w700, fontSize: 12),
+          ),
+        ],
       ),
     );
   }
@@ -243,12 +286,14 @@ class StatusChip extends StatelessWidget {
 class LoadingView extends StatelessWidget {
   const LoadingView({super.key});
   @override
-  Widget build(BuildContext context) =>
-      const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator()));
+  Widget build(BuildContext context) => const Center(
+      child: Padding(
+          padding: EdgeInsets.all(32), child: CircularProgressIndicator()));
 }
 
 class EmptyView extends StatelessWidget {
-  const EmptyView({super.key, required this.message, this.icon = Icons.inbox_outlined});
+  const EmptyView(
+      {super.key, required this.message, this.icon = Icons.inbox_outlined});
   final String message;
   final IconData icon;
   @override
@@ -379,15 +424,20 @@ Future<TimeOfDay?> showTimeOfDay(BuildContext context, DateTime? initial) =>
     );
 
 Future<bool> confirmDialog(BuildContext context,
-    {required String title, required String message, String confirm = 'Confirm'}) async {
+    {required String title,
+    required String message,
+    String confirm = 'Confirm'}) async {
   final r = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
       title: Text(title),
       content: Text(message),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(confirm)),
+        TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel')),
+        FilledButton(
+            onPressed: () => Navigator.pop(ctx, true), child: Text(confirm)),
       ],
     ),
   );
